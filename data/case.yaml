@@ -1,0 +1,170 @@
+# =============================================================================
+# Данные кейса "Топливный космоконтур 2035"
+# Источник: Постановка_кейса_КосмоХакатон_2026, раздел "Данные кейса" (с. 3-5)
+# Лист "Данные кейса 2" анкеты постановщика.
+#
+# Статус параметров:
+#   case       - исходное условие кейса, НЕИЗМЕННО в контрольных расчётах
+#   decision   - решение пользователя (задаётся через план, не здесь)
+#   assumption - допущение команды (где данных нет; помечено явно)
+#
+# Деньги: млн условных денежных единиц, постоянные цены 2035 года.
+# Объёмы: тонны в год (т/год). Горизонт: 2035-2040.
+# =============================================================================
+
+meta:
+  currency: "млн у.е. (пост. цены 2035)"
+  volume_unit: "т/год"
+  horizon_start: 2035
+  horizon_end: 2040
+  status: case
+
+# ----------------------------------------------------------------------------
+# Спрос (с. 3, таблица). Критический спрос ВХОДИТ в общий, не прибавляется.
+# base_total  - базовый общий спрос (стандартный сценарий)
+# critical    - критический спрос (часть общего)
+# low_total   - низкий общий (проверка чувствительности)
+# high_total  - высокий общий (проверка чувствительности)
+# В low/high доля критического сохраняется от базового года.
+# ----------------------------------------------------------------------------
+demand:
+  status: case
+  years:
+    2035: { base_total: 100, critical: 80,  low_total: 80,  high_total: 110 }
+    2036: { base_total: 140, critical: 105, low_total: 112, high_total: 154 }
+    2037: { base_total: 190, critical: 135, low_total: 152, high_total: 209 }
+    2038: { base_total: 250, critical: 170, low_total: 200, high_total: 312.5 }
+    2039: { base_total: 320, critical: 210, low_total: 256, high_total: 400 }
+    2040: { base_total: 390, critical: 250, low_total: 312, high_total: 487.5 }
+
+# ----------------------------------------------------------------------------
+# Каналы снабжения (с. 4-5). Пять каналов A-E.
+# capacity          - максимальная мощность, т/год
+# var_cost          - переменная стоимость, млн у.е./т (включает доставку в узел)
+# reservation_rate  - годовая ставка платы за резерв мощности, млн у.е. за (т/год)
+# take_or_pay       - доля зарезервированной мощности к обязательной оплате
+# lead_time_months  - срок от заказа до доступности
+# reliability       - надёжность по годам (для блока рисков, НЕ множитель объёма)
+# available_from    - год, с которого канал доступен (null = сразу)
+# requires          - id инвестиционного решения, разблокирующего канал
+# ----------------------------------------------------------------------------
+channels:
+  status: case
+  items:
+    - id: A
+      name: Earth-Core
+      kind: долгосрочный наземно-орбитальный
+      capacity: 190
+      var_cost: 6.2
+      reservation_rate: 0.45
+      take_or_pay: 0.70
+      lead_time_months: 12
+      reliability: { default: 0.96 }
+      available_from: null
+      requires: null
+
+    - id: B
+      name: Earth-Flex
+      kind: гибкий наземно-орбитальный
+      capacity: 110
+      var_cost: 8.9
+      reservation_rate: 0.15
+      take_or_pay: 0.0
+      lead_time_months: 4
+      reliability: { default: 0.985 }
+      available_from: null
+      requires: null
+
+    - id: C
+      name: Earth-New
+      kind: новый поставщик
+      capacity: 130
+      var_cost: 7.1
+      reservation_rate: 0.30
+      take_or_pay: 0.50          # после ввода
+      lead_time_months: 24       # 18-24 мес; берём консервативную границу
+      reliability: { first_year: 0.88, default: 0.94 }  # 0.88 первый год работы, далее 0.94
+      available_from: null       # определяется реализацией опциона earth_new_option
+      requires: earth_new_option
+
+    - id: D
+      name: Lunar-ISRU
+      kind: лунный источник ISRU
+      capacity: 120
+      var_cost: 3.0
+      reservation_rate: 0.0
+      take_or_pay: 0.0
+      lead_time_months: 2        # 1-2 мес после ввода
+      reliability: { 2038: 0.78, 2039: 0.90, 2040: 0.93 }
+      available_from: 2038
+      requires: isru_pilot
+
+    - id: E
+      name: Emergency
+      kind: аварийная/спотовая
+      capacity: 80
+      var_cost: 13.8
+      reservation_rate: 0.35
+      take_or_pay: 0.0
+      lead_time_months: 1.5      # ~6 недель
+      reliability: { default: 0.995 }
+      available_from: null
+      requires: null
+
+# ----------------------------------------------------------------------------
+# Хранилище (с. 5). Базовое существует; ZBO - опцион.
+# loss_rate - коэффициент потерь от валового throughput (учитывается ОДИН раз)
+# storage_cost - стоимость хранения, млн у.е./т-год (по среднему физ. запасу)
+# ----------------------------------------------------------------------------
+storage:
+  status: case
+  base:
+    capacity: 70
+    capex: 0
+    loss_rate: 0.045            # 4.5% от throughput
+    storage_cost: 0.72
+  zbo_upgrade:                  # опцион с 2036, см. investments.zbo_upgrade
+    capacity: 120
+    loss_rate: 0.012            # 1.2% после модернизации
+    extra_opex: 12
+
+# ----------------------------------------------------------------------------
+# Инвестиционные решения (с. 5). Даты вложений/ввода/расходов согласуются.
+# ----------------------------------------------------------------------------
+investments:
+  status: case
+  items:
+    - id: zbo_upgrade
+      name: ZBO-модернизация хранилища
+      capex: 180
+      available_from: 2036
+      extra_opex: 12
+      effect: "ёмкость 70->120 т, потери 4.5%->1.2%"
+
+    - id: isru_pilot
+      name: Lunar-ISRU pilot
+      capex: 1250
+      finance_before: 2038       # профинансировать до 2038
+      commissioning_from: 2038
+      extra_opex: 70
+      effect: "разблокирует канал D с 2038"
+
+    - id: earth_new_option
+      name: Earth-New option
+      capex: 360                 # 90 (право) + 270 (реализация)
+      capex_breakdown: { option_fee: 90, exercise: 270 }
+      effect: "разблокирует канал C, мощность 130 т/год после подготовки"
+
+# ----------------------------------------------------------------------------
+# Ограничения (с. 5). Проверяются численно по каждому году.
+# ----------------------------------------------------------------------------
+constraints:
+  status: case
+  service_critical_min: 0.99     # >=99% критического спроса (стандарт)
+  service_total_min: 0.97        # >=97% общего спроса (стандарт)
+  capex_cap_2037: 1800           # CAPEX до конца 2037 <= 1800
+  capex_cap_2040: 2800           # суммарный CAPEX до 2040 <= 2800
+  reserve_days: 45               # физ. запас = 45 дней спроса; R = спрос*45/365
+  days_in_year: 365
+  emergency_max_consecutive_years: 2  # E не базовый >2 лет подряд
+  isru_first_year_reliability_cap: 0.78
