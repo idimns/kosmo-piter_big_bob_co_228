@@ -1,0 +1,34 @@
+{
+  "scenario_id": "standard",
+  "initial_stock": 15,
+  "use_zbo": false,
+  "investments": {
+    "earth_new_option": 2037
+  },
+  "plan": {
+    "2035": [
+      {"channel_id": "A", "reserved_capacity": 130, "ordered": 125}
+    ],
+    "2036": [
+      {"channel_id": "A", "reserved_capacity": 150, "ordered": 150}
+    ],
+    "2037": [
+      {"channel_id": "A", "reserved_capacity": 190, "ordered": 190},
+      {"channel_id": "B", "reserved_capacity": 25, "ordered": 20}
+    ],
+    "2038": [
+      {"channel_id": "A", "reserved_capacity": 190, "ordered": 190},
+      {"channel_id": "B", "reserved_capacity": 90, "ordered": 90}
+    ],
+    "2039": [
+      {"channel_id": "A", "reserved_capacity": 190, "ordered": 190},
+      {"channel_id": "B", "reserved_capacity": 110, "ordered": 110},
+      {"channel_id": "C", "reserved_capacity": 20, "ordered": 17}
+    ],
+    "2040": [
+      {"channel_id": "A", "reserved_capacity": 190, "ordered": 190},
+      {"channel_id": "B", "reserved_capacity": 110, "ordered": 110},
+      {"channel_id": "C", "reserved_capacity": 115, "ordered": 112}
+    ]
+  }
+}
