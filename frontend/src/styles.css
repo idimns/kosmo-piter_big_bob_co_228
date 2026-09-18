@@ -1,0 +1,192 @@
+/* базовые стили. без фреймворка - руками. */
+
+:root {
+  --bg: #0f1419;
+  --panel: #1a2029;
+  --panel2: #232b36;
+  --border: #2f3846;
+  --text: #d8dee9;
+  --muted: #8a94a6;
+  --accent: #4a9eff;
+  --ok: #3fb950;
+  --warn: #d29922;
+  --err: #f85149;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.app {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 220px;
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  padding: 16px 0;
+  flex-shrink: 0;
+}
+
+.sidebar h1 {
+  font-size: 15px;
+  padding: 0 16px 12px;
+  margin: 0 0 8px;
+  border-bottom: 1px solid var(--border);
+  line-height: 1.3;
+}
+
+.nav-item {
+  display: block;
+  padding: 10px 16px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: var(--text);
+  width: 100%;
+  text-align: left;
+  font-size: 14px;
+}
+.nav-item:hover { background: var(--panel2); }
+.nav-item.active {
+  background: var(--panel2);
+  border-left: 3px solid var(--accent);
+  padding-left: 13px;
+}
+
+.main {
+  flex: 1;
+  padding: 20px 24px;
+  overflow-x: auto;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.scenario-select {
+  background: var(--panel2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+button.btn {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 7px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+button.btn:hover { opacity: 0.9; }
+button.btn.secondary {
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.badge.ok { background: rgba(63,185,80,0.15); color: var(--ok); }
+.badge.err { background: rgba(248,81,73,0.15); color: var(--err); }
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 10px 0;
+  font-size: 13px;
+}
+th, td {
+  border: 1px solid var(--border);
+  padding: 6px 9px;
+  text-align: right;
+}
+th { background: var(--panel2); text-align: center; }
+td.txt, th.txt { text-align: left; }
+tr:hover td { background: rgba(74,158,255,0.05); }
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.panel h3 { margin: 0 0 12px; font-size: 15px; }
+
+.row { display: flex; gap: 16px; flex-wrap: wrap; }
+.col { flex: 1; min-width: 260px; }
+
+.kpi {
+  background: var(--panel2);
+  border-radius: 6px;
+  padding: 12px 14px;
+  min-width: 150px;
+}
+.kpi .label { color: var(--muted); font-size: 12px; }
+.kpi .value { font-size: 20px; font-weight: 600; margin-top: 4px; }
+
+/* нарушения - не только цвет, но и иконка/текст (доступность, с.8) */
+.viol {
+  padding: 8px 12px;
+  margin: 6px 0;
+  border-radius: 4px;
+  border-left: 4px solid var(--muted);
+  background: var(--panel2);
+}
+.viol.error { border-left-color: var(--err); }
+.viol.warning { border-left-color: var(--warn); }
+.viol .tag {
+  font-weight: 700;
+  margin-right: 8px;
+  font-size: 12px;
+}
+.viol.error .tag { color: var(--err); }
+.viol.warning .tag { color: var(--warn); }
+
+input[type=number], input[type=text] {
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 5px 7px;
+  border-radius: 3px;
+  width: 90px;
+  font-size: 13px;
+}
+input.wide { width: 100%; }
+
+label { color: var(--muted); font-size: 13px; }
+
+.err-msg {
+  background: rgba(248,81,73,0.1);
+  border: 1px solid var(--err);
+  color: var(--err);
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin: 8px 0;
+}
+
+.hint { color: var(--muted); font-size: 12px; margin-top: 4px; }
+
+.readonly { opacity: 0.75; }
