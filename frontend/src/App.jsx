@@ -6,9 +6,11 @@ import Dashboard from './screens/Dashboard.jsx'
 import ViolationsScreen from './screens/ViolationsScreen.jsx'
 import CompareScreen from './screens/CompareScreen.jsx'
 import GeoScreen from './screens/GeoScreen.jsx'
+import ImportScreen from './screens/ImportScreen.jsx'
 
 const SCREENS = [
   { id: 'data', label: 'Данные кейса' },
+  { id: 'import', label: 'Импорт CSV/XLSX' },
   { id: 'decisions', label: 'Решения / план' },
   { id: 'dashboard', label: 'Дашборд' },
   { id: 'violations', label: 'Проверки' },
@@ -43,6 +45,16 @@ export default function App() {
         setScenarios(s)
       })
       .catch((e) => setError('Не удалось загрузить данные: ' + e.message))
+  }, [])
+
+  // перезагрузить кейс (после импорта/сброса) - чтобы экраны увидели новые данные
+  const reloadCase = useCallback(async () => {
+    try {
+      const c = await api.getCase()
+      setCaseData(c)
+    } catch (e) {
+      setError('Не удалось перезагрузить кейс: ' + e.message)
+    }
   }, [])
 
   // пересчёт плана
@@ -124,6 +136,7 @@ export default function App() {
         {error && <div className="err-msg">Ошибка: {error}</div>}
 
         {screen === 'data' && <DataScreen {...common} />}
+        {screen === 'import' && <ImportScreen onApplied={reloadCase} />}
         {screen === 'decisions' && <DecisionsScreen {...common} />}
         {screen === 'dashboard' && <Dashboard {...common} />}
         {screen === 'violations' && <ViolationsScreen {...common} />}

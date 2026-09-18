@@ -84,3 +84,31 @@ export async function downloadExport(decision, scenarioId, fmt) {
   a.remove()
   URL.revokeObjectURL(url)
 }
+
+// --- импорт CSV/XLSX ---
+
+export async function importPreview(file, mappingOverride, tableTypeOverride) {
+  const fd = new FormData()
+  fd.append('file', file)
+  if (mappingOverride) fd.append('mapping_override', JSON.stringify(mappingOverride))
+  if (tableTypeOverride) fd.append('table_type_override', tableTypeOverride)
+  const r = await fetch('/api/import/preview', { method: 'POST', body: fd })
+  if (!r.ok) {
+    let msg = 'HTTP ' + r.status
+    try { const b = await r.json(); if (b.detail) msg = b.detail } catch (e) {}
+    throw new Error(msg)
+  }
+  return r.json()
+}
+
+export function importApply(pieces) {
+  return req('/api/import/apply', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ pieces }),
+  })
+}
+
+export function importReset() {
+  return req('/api/import/reset', { method: 'POST' })
+}
