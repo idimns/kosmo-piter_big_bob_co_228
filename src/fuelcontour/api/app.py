@@ -155,6 +155,30 @@ def create_app() -> FastAPI:
             )
         return scenarios[sid]
 
+    def _validate_plan(decision: Decision):
+        """План не должен ссылаться на каналы/инвестиции, которых нет в кейсе.
+        Иначе движок упадёт - отдаём понятную 422 вместо 500."""
+        known_ch = {c.id for c in cur_case().channels}
+        known_inv = {i.id for i in cur_case().investments}
+        bad_ch = set()
+        for year, items in decision.plan.items():
+            for cd in items:
+                if cd.channel_id not in known_ch:
+                    bad_ch.add(cd.channel_id)
+        bad_inv = {i for i in decision.investments if i not in known_inv}
+        if bad_ch:
+            raise HTTPException(
+                status_code=422,
+                detail=f"План ссылается на неизвестные каналы: {sorted(bad_ch)}. "
+                       f"Доступны: {sorted(known_ch)}",
+            )
+        if bad_inv:
+            raise HTTPException(
+                status_code=422,
+                detail=f"План ссылается на неизвестные инвестиции: {sorted(bad_inv)}. "
+                       f"Доступны: {sorted(known_inv)}",
+            )
+
     @app.get("/api/case")
     def get_case():
         return case_to_dict(cur_case())
@@ -170,12 +194,14 @@ def create_app() -> FastAPI:
     def evaluate(req: EvaluateRequest):
         decision = _parse_decision(req.decision)
         scn = _get_scenario(req.scenario_id)
+        _validate_plan(decision)
         res = evaluate_plan(cur_case(), decision, scn)
         return result_to_dict(res)
 
     @app.post("/api/scenario/compare")
     def scenario_compare(req: CompareRequest):
         decision = _parse_decision(req.decision)
+        _validate_plan(decision)
         std = evaluate_plan(cur_case(), decision, _get_scenario("standard"))
         strs = evaluate_plan(cur_case(), decision, _get_scenario("stress"))
         return {
@@ -210,6 +236,7 @@ def create_app() -> FastAPI:
     def export(req: ExportRequest):
         decision = _parse_decision(req.decision)
         scn = _get_scenario(req.scenario_id)
+        _validate_plan(decision)
         res = evaluate_plan(cur_case(), decision, scn)
 
         if req.fmt == "csv":
@@ -234,6 +261,7 @@ def create_app() -> FastAPI:
     def geopolitical(req: GeoRequest):
         decision = _parse_decision(req.decision)
         scn = _get_scenario(req.scenario_id)
+        _validate_plan(decision)
         ev = GeoEvent(
             event_id=req.event.event_id,
             description=req.event.description,
@@ -326,17 +354,29 @@ def create_app() -> FastAPI:
             kind = piece.get("kind")
             data = piece.get("data")
             if kind == "demand" and data:
-                base["demand"] = data
-                applied.append("demand")
+                # спрос: мерджим по годам (обновляем пришедшие, остальные оставляем)
+                cur_years = base["demand"].get("years", {})
+                new_years = data.get("years", {})
+                cur_years.update({str(k): v for k, v in new_years.items()})
+                base["demand"]["years"] = cur_years
+                applied.append(f"demand ({len(new_years)} лет)")
             elif kind == "channels" and data:
-                base["channels"] = data
-                applied.append(f"channels ({len(data)})")
+                # мердж по id: обновляем совпадающие, добавляем новые, прочие храним
+                by_id = {c["id"]: c for c in base["channels"]}
+                for ch in data:
+                    by_id[ch["id"]] = ch
+                base["channels"] = list(by_id.values())
+                applied.append(f"channels ({len(data)} обновлено)")
             elif kind == "storage" and data:
                 base["storage"] = data
                 applied.append("storage")
             elif kind == "investments" and data:
-                base["investments"] = data
-                applied.append(f"investments ({len(data)})")
+                # мердж по id
+                by_id = {i["id"]: i for i in base["investments"]}
+                for inv in data:
+                    by_id[inv["id"]] = inv
+                base["investments"] = list(by_id.values())
+                applied.append(f"investments ({len(data)} обновлено)")
             # constraints не применяем автоматически (защита проверок)
 
         # пересобираем CaseData из обновлённого dict

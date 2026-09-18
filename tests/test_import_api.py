@@ -41,10 +41,39 @@ def test_apply_channels_updates_case(client):
     prev = _upload(client, "ref_supply_sources.csv").json()
     r = client.post("/api/import/apply", json={"pieces": [prev["preview"]]})
     assert r.status_code == 200
-    assert "channels (5)" in r.json()["applied"]
+    # мердж по id: 5 каналов обновлено
+    assert any("channels" in a and "5" in a for a in r.json()["applied"])
     # кейс обновился
     case = client.get("/api/case").json()
     assert len(case["channels"]) == 5
+
+
+def test_partial_channel_import_keeps_others(client):
+    """Частичный импорт (только A) не должен удалять C/D/E - мердж по id."""
+    client.post("/api/import/reset")
+    csv = ("source_id,name,capacity_t_per_year,variable_cost_mln_per_t,"
+           "reservation_rate_mln_per_t_year_capacity,take_or_pay_share,"
+           "lead_time_min_value,lead_time_unit,reliability_profile,available_from_year\n"
+           "A,Earth-Core,190,99.9,0.45,0.70,12,month,constant:0.96,2035\n")
+    prev = client.post("/api/import/preview",
+                       files={"file": ("one.csv", csv.encode(), "text/csv")}).json()
+    client.post("/api/import/apply", json={"pieces": [prev["preview"]]})
+    case = client.get("/api/case").json()
+    ids = [c["id"] for c in case["channels"]]
+    # все 5 каналов на месте, A обновлён
+    assert ids == ["A", "B", "C", "D", "E"]
+    a = next(c for c in case["channels"] if c["id"] == "A")
+    assert a["var_cost"] == 99.9
+    client.post("/api/import/reset")
+
+
+def test_plan_with_unknown_channel_gives_422(client):
+    """План со ссылкой на несуществующий канал -> 422, а не 500."""
+    client.post("/api/import/reset")
+    bad_plan = {"initial_stock": 0, "plan": {"2035": [{"channel_id": "Z", "ordered": 10}]}}
+    r = client.post("/api/plan/evaluate", json={"decision": bad_plan, "scenario_id": "standard"})
+    assert r.status_code == 422
+    assert "неизвестные каналы" in r.json()["detail"]
 
 
 def test_full_import_reproduces_result(client):
