@@ -16,6 +16,8 @@ env/
 # results - temp exports only, keep saved plans
 results/*.tmp
 results/*.xlsx.tmp
+results/export_*.xlsx
+results/csv_*/
 *.log
 
 # frontend
