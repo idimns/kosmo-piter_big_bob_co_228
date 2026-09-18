@@ -1,0 +1,99 @@
+{
+  "scenario_id": "standard",
+  "initial_stock": 20,
+  "use_zbo": true,
+  "investments": {
+    "zbo_upgrade": 2036,
+    "earth_new_option": 2037,
+    "isru_pilot": 2037
+  },
+  "plan": {
+    "2035": [
+      {
+        "channel_id": "A",
+        "reserved_capacity": 110.0,
+        "ordered": 105.0
+      }
+    ],
+    "2036": [
+      {
+        "channel_id": "A",
+        "reserved_capacity": 150.0,
+        "ordered": 148.0
+      }
+    ],
+    "2037": [
+      {
+        "channel_id": "A",
+        "reserved_capacity": 190.0,
+        "ordered": 188.0
+      },
+      {
+        "channel_id": "B",
+        "reserved_capacity": 15.0,
+        "ordered": 12.0
+      }
+    ],
+    "2038": [
+      {
+        "channel_id": "A",
+        "reserved_capacity": 190.0,
+        "ordered": 190.0
+      },
+      {
+        "channel_id": "B",
+        "reserved_capacity": 40.0,
+        "ordered": 38.0
+      },
+      {
+        "channel_id": "D",
+        "reserved_capacity": 40.0,
+        "ordered": 38.0
+      }
+    ],
+    "2039": [
+      {
+        "channel_id": "A",
+        "reserved_capacity": 190.0,
+        "ordered": 190.0
+      },
+      {
+        "channel_id": "B",
+        "reserved_capacity": 60.0,
+        "ordered": 58.0
+      },
+      {
+        "channel_id": "C",
+        "reserved_capacity": 40.0,
+        "ordered": 33.0
+      },
+      {
+        "channel_id": "D",
+        "reserved_capacity": 70.0,
+        "ordered": 68.0
+      }
+    ],
+    "2040": [
+      {
+        "channel_id": "A",
+        "reserved_capacity": 190.0,
+        "ordered": 185.0
+      },
+      {
+        "channel_id": "B",
+        "reserved_capacity": 90.0,
+        "ordered": 80.0
+      },
+      {
+        "channel_id": "C",
+        "reserved_capacity": 90.0,
+        "ordered": 75.0
+      },
+      {
+        "channel_id": "D",
+        "reserved_capacity": 90.0,
+        "ordered": 82.0
+      }
+    ]
+  }
+}
