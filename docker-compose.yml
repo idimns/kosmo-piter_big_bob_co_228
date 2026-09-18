@@ -1,0 +1,9 @@
+# запуск для жюри: docker compose up -> http://localhost:8000
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    # результаты и планы наружу, чтобы сохранялись между перезапусками
+    volumes:
+      - ./results:/app/results
