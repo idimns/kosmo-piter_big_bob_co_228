@@ -49,18 +49,15 @@ export default function Dashboard({ result, caseData }) {
     if (any) usedChannels.push(ch.id)
   }
 
-  // худший сервис по годам - для KPI
-  let worstTotal = 1, worstCrit = 1, worstYear = null
+  // худший сервис по годам - для KPI. старт выше 1, чтобы первый год всегда
+  // записался (иначе при сервисе ровно 100% worstYear оставался null)
+  let worstTotal = 99, worstCrit = 99, worstYear = null
   for (const r of result.years) {
     if (r.service_total_ratio < worstTotal) { worstTotal = r.service_total_ratio; worstYear = r.year }
     if (r.service_critical_ratio < worstCrit) worstCrit = r.service_critical_ratio
   }
 
-  // ёмкость хранилища (с учётом ZBO уже отражена в stock, но лимит покажем)
-  const storageCap = result.years.length
-    ? Math.max(...result.years.map((r) => r.stock_end))
-    : 0
-  // берём ёмкость из кейса: base или zbo. упрощённо - максимум из двух если zbo есть
+  // ёмкость хранилища из кейса (base или zbo)
   const capLimit = caseData.storage.zbo_upgrade
     ? Math.max(caseData.storage.base.capacity, caseData.storage.zbo_upgrade.capacity)
     : caseData.storage.base.capacity
