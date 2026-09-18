@@ -11,24 +11,34 @@ export default function ViolationsScreen({ result }) {
 
   return (
     <div>
+      {/* сводка сверху - сразу счётчики */}
+      <div className={'status-banner ' + (result.feasible ? 'ok' : 'bad')}>
+        <div className="icon">{result.feasible ? '✓' : '✕'}</div>
+        <div>
+          <div className="title">
+            {result.feasible ? 'Все обязательные ограничения соблюдены' : 'План нарушает ограничения'}
+          </div>
+          <div className="sub">
+            Ошибок: {errors.length} · Предупреждений: {warnings.length} · Рисков в реестре: {result.risks.length}
+            {' '}· сценарий: {result.scenario_id}
+          </div>
+        </div>
+      </div>
+
       <div className="panel">
-        <h3>
-          Проверка ограничений{' '}
-          <span className={'badge ' + (result.feasible ? 'ok' : 'err')}>
-            {result.feasible ? 'план исполним' : 'план неисполним'}
-          </span>
-        </h3>
+        <h3>Проверка ограничений</h3>
 
         {result.violations.length === 0 && (
           <div className="viol" style={{ borderLeftColor: '#3fb950' }}>
             <span className="tag" style={{ color: '#3fb950' }}>[OK]</span>
-            Нарушений не найдено.
+            Нарушений не найдено. План проходит все проверки: сервис, ёмкость, мощность,
+            CAPEX, сроки, резерв, условия каналов.
           </div>
         )}
 
         {errors.length > 0 && (
           <div style={{ marginBottom: 12 }}>
-            <div className="hint">Ошибки ({errors.length}) — план не соответствует обязательным ограничениям:</div>
+            <div className="section-title" style={{ color: '#f85149' }}>Ошибки — обязательные ограничения нарушены</div>
             {errors.map((v, i) => (
               <div key={i} className="viol error">
                 <span className="tag">[ОШИБКА]</span>
@@ -40,7 +50,7 @@ export default function ViolationsScreen({ result }) {
 
         {warnings.length > 0 && (
           <div>
-            <div className="hint">Предупреждения ({warnings.length}) — ориентиры устойчивости (напр. в стрессе):</div>
+            <div className="section-title" style={{ color: '#d29922' }}>Предупреждения — ориентиры устойчивости (напр. в стрессе)</div>
             {warnings.map((v, i) => (
               <div key={i} className="viol warning">
                 <span className="tag">[ВНИМАНИЕ]</span>
@@ -60,7 +70,7 @@ export default function ViolationsScreen({ result }) {
                 <th className="txt">Событие</th>
                 <th className="txt">Причина</th>
                 <th className="txt">Период</th>
-                <th>Вероятность</th>
+                <th>Вероятн.</th>
                 <th>Ущерб, т</th>
                 <th className="txt">Мера</th>
               </tr>
@@ -79,7 +89,8 @@ export default function ViolationsScreen({ result }) {
             </tbody>
           </table>
           <div className="hint">
-            Надёжность каналов учтена здесь как риск, а не как множитель поставки (Правило 6).
+            Надёжность каналов учтена здесь как риск (ожидаемая недопоставка), а не как
+            множитель поставки в балансе (Правило 6 — без двойного учёта).
           </div>
         </div>
       )}
