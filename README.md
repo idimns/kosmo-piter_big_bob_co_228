@@ -46,13 +46,43 @@ python -m fuelcontour run --scenario standard --plan results/plan_standard.json
 python -m fuelcontour compare --plan results/plan_standard.json
 ```
 
+## Веб-интерфейс (рабочее место оператора)
+
+Вариант 1 — одной командой через Docker (рекомендуется для жюри):
+
+```bash
+docker compose up
+# затем открыть http://localhost:8000
+```
+
+Вариант 2 — вручную. Собрать фронт и запустить API (один процесс раздаёт всё):
+
+```bash
+cd frontend && npm install && npm run build && cd ..
+uvicorn fuelcontour.api.app:app --port 8000
+# открыть http://localhost:8000
+```
+
+Вариант 3 — режим разработки (фронт и бэк раздельно):
+
+```bash
+uvicorn fuelcontour.api.app:app --port 8000      # терминал 1
+cd frontend && npm run dev                        # терминал 2 -> localhost:5173
+```
+
+Интерфейс: данные кейса, редактор плана и контрактов, дашборд, проверки
+ограничений, сравнение сценариев, геополитический блок. Выгрузка CSV/XLSX —
+кнопками в шапке.
+
 ## Порядок проверки (для жюри)
 
-1. Установка и запуск (см. выше).
+1. Установка и запуск (см. выше) — или `docker compose up`.
 2. Стандартный сценарий: `run --scenario standard --plan results/plan_standard.json`.
 3. Обязательный стресс-тест: `run --scenario stress --plan results/plan_standard.json`.
 4. Сравнение: `compare --plan results/plan_standard.json`.
 5. Тесты (контрольные и граничные примеры): `pytest`.
+6. Веб-интерфейс: пройти сценарий оператора (данные → план → дашборд →
+   сравнение → выгрузка).
 
 ## Структура репозитория
 
@@ -60,8 +90,10 @@ python -m fuelcontour compare --plan results/plan_standard.json
 src/fuelcontour/
   model/       pydantic-сущности (данные кейса, сценарии, решения)
   engine/      расчётное ядро (7 стадий + единый Result)
-  io/          загрузка YAML/JSON, сохранение планов
+  io/          загрузка YAML/JSON, выгрузка CSV/XLSX
+  api/         FastAPI поверх ядра
   cli.py       командная строка
+frontend/      веб-интерфейс (React + Vite)
 data/          исходные условия кейса (case.yaml)
 configs/       сценарии: standard.yaml, stress.yaml
 tests/         контрольные, граничные и golden-примеры
