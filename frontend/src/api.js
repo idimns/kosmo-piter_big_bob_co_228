@@ -112,3 +112,16 @@ export function importApply(pieces) {
 export function importReset() {
   return req('/api/import/reset', { method: 'POST' })
 }
+
+// многолистовой импорт: один файл -> все таблицы
+export async function importPreviewAll(file) {
+  const fd = new FormData()
+  fd.append('file', file)
+  const r = await fetch('/api/import/preview-all', { method: 'POST', body: fd })
+  if (!r.ok) {
+    let msg = 'HTTP ' + r.status
+    try { const b = await r.json(); if (b.detail) msg = b.detail } catch (e) {}
+    throw new Error(msg)
+  }
+  return r.json()
+}

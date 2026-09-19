@@ -117,3 +117,43 @@ def test_reset_restores_original(client):
     case = client.get("/api/case").json()
     assert len(case["channels"]) == 5
     assert case["channels"][0]["id"] == "A"
+
+
+def test_preview_all_multisheet(client):
+    """Многолистовой XLSX -> все 4 таблицы распознаны."""
+    xlsx = ROOT / "data" / "sample_import_full.xlsx"
+    if not xlsx.exists():
+        pytest.skip("нет sample_import_full.xlsx")
+    content = xlsx.read_bytes()
+    r = client.post("/api/import/preview-all",
+                    files={"file": ("sample.xlsx", content,
+                                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")})
+    assert r.status_code == 200
+    kinds = r.json()["kinds"]
+    assert set(kinds) == {"demand", "channels", "storage", "investments"}
+
+
+def test_apply_all_changes_everything(client):
+    """Импорт всех листов одним файлом меняет спрос, каналы, склад, инвестиции."""
+    xlsx = ROOT / "data" / "sample_import_full.xlsx"
+    if not xlsx.exists():
+        pytest.skip("нет sample_import_full.xlsx")
+    client.post("/api/import/reset")
+    before = client.get("/api/case").json()
+
+    content = xlsx.read_bytes()
+    pieces = client.post("/api/import/preview-all",
+                         files={"file": ("sample.xlsx", content,
+                                         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")}).json()["pieces"]
+    client.post("/api/import/apply", json={"pieces": pieces})
+    after = client.get("/api/case").json()
+
+    # спрос 2040 изменился
+    assert before["demand"]["years"]["2040"]["base_total"] != after["demand"]["years"]["2040"]["base_total"]
+    # склад изменился
+    assert before["storage"]["base"]["capacity"] != after["storage"]["base"]["capacity"]
+    # план всё ещё считается после смены всех данных
+    plan = json.loads((ROOT / "results" / "plan_recommended.json").read_text())
+    r = client.post("/api/plan/evaluate", json={"decision": plan, "scenario_id": "standard"})
+    assert r.status_code == 200
+    client.post("/api/import/reset")

@@ -394,6 +394,25 @@ def create_app() -> FastAPI:
             "preview": built,
         }
 
+    @app.post("/api/import/preview-all")
+    async def import_preview_all(file: UploadFile = File(...)):
+        """Многолистовой импорт: один файл (XLSX с листами или CSV) -> ВСЕ таблицы.
+
+        Возвращает список распознанных кусков (demand/channels/storage/
+        investments). Дальше их можно применить одним вызовом apply.
+        """
+        content = await file.read()
+        fname = file.filename or "upload.xlsx"
+        try:
+            pieces = importer.build_all_pieces(content, fname)
+        except Exception as e:
+            raise HTTPException(status_code=422, detail=f"Не удалось прочитать файл: {e}")
+        return {
+            "filename": file.filename,
+            "pieces": pieces,
+            "kinds": [p["kind"] for p in pieces],
+        }
+
     @app.post("/api/import/apply")
     def import_apply(req: ImportApplyRequest):
         """Применить импортированные куски к рабочему кейсу.

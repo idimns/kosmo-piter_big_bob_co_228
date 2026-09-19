@@ -37,6 +37,37 @@ export default function ImportScreen({ onApplied }) {
   const [error, setError] = useState(null)
   const [busy, setBusy] = useState(false)
   const [applied, setApplied] = useState(null)
+  const [allPieces, setAllPieces] = useState(null)   // многолистовой импорт
+
+  // многолистовой импорт: один файл -> все таблицы
+  async function onFileAll(e) {
+    const f = e.target.files[0]
+    if (!f) return
+    setBusy(true); setError(null); setApplied(null); setPreview(null); setAllPieces(null)
+    try {
+      const res = await api.importPreviewAll(f)
+      setAllPieces(res)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function applyAll() {
+    if (!allPieces || !allPieces.pieces?.length) return
+    setBusy(true); setError(null)
+    try {
+      const res = await api.importApply(allPieces.pieces)
+      setApplied(res)
+      setAllPieces(null)
+      if (onApplied) onApplied()
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setBusy(false)
+    }
+  }
 
   async function doPreview(f, ovr, tovr) {
     setBusy(true); setError(null); setApplied(null)
@@ -124,6 +155,34 @@ export default function ImportScreen({ onApplied }) {
           Сбросить к исходным данным
         </button>
       </div>
+
+      <div className="panel">
+        <h3>Импорт всех данных одним файлом (XLSX с листами)</h3>
+        <p style={{ color: 'var(--muted)', margin: '4px 0 12px', lineHeight: 1.5 }}>
+          Загрузите один XLSX с листами (спрос, каналы, хранилище, инвестиции) —
+          импортёр распознает все листы и заменит все данные сразу. Пример:
+          <code> data/sample_import_full.xlsx</code>.
+        </p>
+        <input type="file" accept=".xlsx,.xls,.csv" onChange={onFileAll} />
+      </div>
+
+      {allPieces && (
+        <div className="panel">
+          <h3>Распознано в файле «{allPieces.filename}»</h3>
+          <div className="hint" style={{ marginBottom: 8 }}>
+            Найдены таблицы: {allPieces.kinds.map((k) => TYPE_LABELS[k] || k).join(', ')}
+          </div>
+          {allPieces.pieces.map((p, i) => (
+            <div key={i} style={{ marginBottom: 12 }}>
+              <div className="section-title">{TYPE_LABELS[p.kind] || p.kind}{p.sheet ? ` (лист: ${p.sheet})` : ''}</div>
+              <PreviewData built={p} />
+            </div>
+          ))}
+          <button className="btn" onClick={applyAll} disabled={busy}>
+            Применить все данные к кейсу
+          </button>
+        </div>
+      )}
 
       {error && <div className="err-msg">Ошибка: {error}</div>}
 

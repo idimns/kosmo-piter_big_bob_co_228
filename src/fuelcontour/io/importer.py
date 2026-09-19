@@ -52,7 +52,7 @@ FIELD_SYNONYMS: Dict[str, List[str]] = {
     "low_total": ["low total", "низкий", "low", "low demand", "низкий общий"],
     "high_total": ["high total", "высокий", "high", "high demand", "высокий общий"],
     # --- каналы ---
-    "capacity": ["capacity", "мощность", "capacity t per year", "cap", "макс мощность", "capacity t"],
+    "capacity": ["capacity", "мощность", "ёмкость", "емкость", "capacity t per year", "cap", "макс мощность", "capacity t"],
     "var_cost": ["variable cost", "переменная стоимость", "var cost", "цена", "стоимость т", "cost mln per t", "variable cost mln per t"],
     "reservation_rate": ["reservation rate", "резерв", "плата за резерв", "reservation", "ставка резерва", "reservation rate mln per t year capacity"],
     "take_or_pay": ["take or pay", "top", "take or pay share", "обязательство", " top "],
@@ -429,3 +429,54 @@ def build_from_preview(df: "pd.DataFrame", table_type: str,
         # просто отдаём распознанные строки для показа
         return {"kind": "constraints", "data": df.to_dict(orient="records")}
     return {"kind": "unknown", "data": []}
+
+
+# ---------------------------------------------------------------------------
+# многолистовой импорт: один файл -> ВСЕ таблицы сразу
+# ---------------------------------------------------------------------------
+
+def read_all_sheets(content: bytes, filename: str) -> Dict[str, "pd.DataFrame"]:
+    """Прочитать ВСЕ листы XLSX (или единственную таблицу CSV).
+
+    Возвращает {имя_листа: DataFrame}. Для CSV - один элемент.
+    """
+    name = (filename or "").lower()
+    if name.endswith(".xlsx") or name.endswith(".xls"):
+        xls = pd.ExcelFile(io.BytesIO(content))
+        out = {}
+        for sheet in xls.sheet_names:
+            df = xls.parse(sheet)
+            if int(df.notna().sum().sum()) > 0:   # пропускаем пустые листы
+                out[str(sheet)] = df
+        return out
+    else:
+        return {"csv": read_table(content, filename)}
+
+
+def build_all_pieces(content: bytes, filename: str) -> List[dict]:
+    """Разобрать многолистовой файл и собрать ВСЕ распознанные куски.
+
+    Для каждого листа определяем тип по заголовкам и собираем кусок. Так один
+    XLSX с листами demand/channels/storage/investments меняет все данные разом.
+    Дубли типов не схлопываем - берём первый распознанный каждого типа.
+    """
+    sheets = read_all_sheets(content, filename)
+    pieces: List[dict] = []
+    seen_types = set()
+    for sheet_name, df in sheets.items():
+        if df is None or df.empty:
+            continue
+        roles = [guess_role(c) for c in df.columns]
+        ttype = detect_table_type([r for r in roles if r])
+        if ttype is None or ttype in seen_types:
+            continue
+        mapping = {}
+        for src in df.columns:
+            role = guess_role(src)
+            if role and role not in mapping:
+                mapping[role] = str(src)
+        piece = build_from_preview(df, ttype, mapping)
+        piece["sheet"] = sheet_name
+        pieces.append(piece)
+        seen_types.add(ttype)
+    return pieces
