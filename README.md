@@ -94,17 +94,34 @@ cd frontend && npm run dev                        # терминал 2 -> localh
 ```
 src/fuelcontour/
   model/       pydantic-сущности (данные кейса, сценарии, решения)
-  engine/      расчётное ядро (7 стадий + единый Result)
-  io/          загрузка YAML/JSON, выгрузка CSV/XLSX
+  engine/      расчётное ядро (7 стадий + единый Result) + оптимизатор, риски
+  io/          загрузка YAML/JSON, выгрузка CSV/XLSX, импорт
   api/         FastAPI поверх ядра
+  validation/  прогон контрольных примеров V01-V10
   cli.py       командная строка
 frontend/      веб-интерфейс (React + Vite)
-data/          исходные условия кейса (case.yaml)
-configs/       сценарии: standard.yaml, stress.yaml
-tests/         контрольные, граничные и golden-примеры
-results/       сохранённые планы и выгрузки
-docs/          управленческая записка, источники, презентация
+presentation/  автономная презентация продукта (HTML)
+data/          исходные условия кейса (case.yaml) + пример импорта
+configs/       сценарии: standard, stress, low, high
+tests/         контрольные, граничные и golden-примеры (74 теста)
+results/       сохранённые планы + выгрузки (results/exports/)
+validation/    контрольные векторы V01-V10
+docs/          документация (см. индекс ниже)
 ```
+
+## Документация (docs/)
+
+| Файл | Содержание |
+|---|---|
+| `management_note.md` | Управленческая записка (стратегия, экономика, риски) |
+| `scenario_comparison.md` | Одностраничное резюме сравнения 4 сценариев |
+| `supply_chain.md` | Схема цепочки поставок (диаграмма + зависимости) |
+| `kpi_registry.md` | Реестр KPI: формулы, цели, способ контроля |
+| `contract_finance.md` | Контрактно-финансовая архитектура |
+| `test_protocol.md` | Протокол контрольных и стресс-тестов |
+| `sources.md` | Научные источники и их связь с моделью |
+| `usage_guide.md` | Руководство пользователя |
+| `presentation.md` / `presentation_speech.md` | Презентация и план выступления |
 
 ## Модель: ключевые принципы
 
