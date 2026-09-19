@@ -14,6 +14,8 @@ export default function Dashboard({ result }) {
   if (!result) return <div className="panel">Нет результата. Задайте план на вкладке «Решения».</div>
 
   const e = result.economics
+  // план пустой, если ничего не заказано (нет поступлений ни в одном году)
+  const planEmpty = result.years.every((r) => (r.inflow || 0) === 0)
   const chartData = result.years.map((r) => ({
     year: r.year,
     Спрос: Math.round(r.demand_total),
@@ -25,6 +27,19 @@ export default function Dashboard({ result }) {
 
   return (
     <div>
+      {planEmpty && (
+        <div className="status-banner bad" style={{ marginBottom: 16 }}>
+          <div className="icon">i</div>
+          <div>
+            <div className="title">План пуст — расходы 0</div>
+            <div className="sub">
+              Импорт меняет данные кейса (спрос, каналы, склад), но не заказы.
+              Задайте заказы по каналам на вкладке «Решения / план» — расходы и
+              графики пересчитаются.
+            </div>
+          </div>
+        </div>
+      )}
       <div className="row" style={{ marginBottom: 16 }}>
         <div className="kpi">
           <div className="label">Суммарные расходы</div>
