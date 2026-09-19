@@ -35,3 +35,4 @@ frontend/.vite/
 .env
 .env.*
 *.key
+*.7z
