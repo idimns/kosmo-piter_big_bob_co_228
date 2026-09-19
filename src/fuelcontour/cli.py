@@ -118,6 +118,23 @@ def cmd_show_case(args):
     return 0
 
 
+def cmd_validate(args):
+    """Прогнать контрольные примеры V01-V10 организатора через наш движок."""
+    from .validation import run_validation, summary
+    results = run_validation()
+    print("Контрольные примеры кейса (validation/expected_checks.json):")
+    print("-" * 60)
+    for r in results:
+        mark = "OK  " if r.passed else "FAIL"
+        print(f"  {mark} {r.case_id}: {r.computed}")
+        if not r.passed:
+            print(f"       ожидалось: {r.expected} {r.note}")
+    s = summary(results)
+    print("-" * 60)
+    print(f"ПРОШЛО: {s['passed']}/{s['total']}")
+    return 0 if s["failed"] == 0 else 1
+
+
 def build_parser():
     p = argparse.ArgumentParser(
         prog="fuelcontour",
@@ -139,6 +156,9 @@ def build_parser():
 
     ps = sub.add_parser("show-case", help="показать данные кейса")
     ps.set_defaults(func=cmd_show_case)
+
+    pv = sub.add_parser("validate", help="прогнать контрольные примеры V01-V10")
+    pv.set_defaults(func=cmd_validate)
 
     return p
 

@@ -1,0 +1,15 @@
+{
+  "_comment": "Входы контрольных примеров V01-V10, извлечённые из control_cases.md организатора. expected_checks.json содержит только ожидаемые результаты; эти входы нужны, чтобы прогнать примеры через наш движок.",
+  "cases": {
+    "V01": {"kind": "balance", "opening": 10, "delivered": 30, "losses": 2, "served": 25},
+    "V02": {"kind": "shortage", "opening": 0, "delivered": 8, "losses": 0, "demand": 10},
+    "V03": {"kind": "take_or_pay", "reserved": 100, "order": 50, "top_share": 0.70, "price": 2},
+    "V04": {"kind": "take_or_pay", "reserved": 100, "order": 50, "top_share": 0.70, "price": 2},
+    "V05": {"kind": "reservation", "annual_capacity": 100, "rate": 0.4, "fraction": 0.5},
+    "V06": {"kind": "losses", "gross_inflow": 20, "loss_rate": 0.05},
+    "V07": {"kind": "reserve_days", "annual_demand": 365, "days": 45},
+    "V08": {"kind": "capacity", "capacity": 10, "reserved": 12},
+    "V09": {"kind": "nested_demand", "total": 100, "critical": 60},
+    "V10": {"kind": "stress_share", "planned": 20, "actual_share": 0.50, "reliability": 0.80}
+  }
+}

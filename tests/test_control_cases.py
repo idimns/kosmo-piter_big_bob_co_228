@@ -1,92 +1,57 @@
-"""Контрольные примеры организатора V01-V10 (SpaceEconomyPolicy/test_oil).
+"""Контрольные примеры организатора V01-V10 - управляемые данными.
 
-Источник: validation/control_cases.md + validation/expected_checks.json.
-Это проверки семантики/арифметики движка на официальных ожидаемых значениях.
-Держим отдельным файлом, чтобы явно показать соответствие эталону кейса.
+Читаем validation/expected_checks.json (файл организатора) и прогоняем каждый
+пример через наш движок (src/fuelcontour/validation). Плюс интеграционная
+проверка полного MANDATORY_STRESS на реальных входах кейса (требование их README).
 """
 import pytest
 from pathlib import Path
 
-from fuelcontour.io.loader import load_case, load_scenarios
-from fuelcontour.model.entities import Decision, ChannelDecision
-from fuelcontour.engine.economics import variable_payment, reservation_payment
-from fuelcontour.engine.balance import compute_balance
+from fuelcontour.validation import run_validation, summary
+from fuelcontour.io.loader import load_case, load_scenarios, load_decision
 from fuelcontour.engine.pipeline import evaluate_plan
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_v01_material_balance():
-    # 10 + 30 - 2 - 25 = 13
-    assert 10 + 30 - 2 - 25 == 13
+def test_all_control_cases_pass():
+    """Все V01-V10 воспроизводятся нашим движком (data-driven из их JSON)."""
+    results = run_validation()
+    s = summary(results)
+    failed = [r.case_id for r in results if not r.passed]
+    assert s["failed"] == 0, f"провалились: {failed}"
+    assert s["passed"] == 10
 
 
-def test_v03_take_or_pay_minimum():
-    # max(50, 0.70*100)=70; 70*2=140
-    v = variable_payment(price=2, drawn=50, take_or_pay=0.70, reserved_capacity=100)
-    assert abs(v - 140) < 1e-9
+@pytest.mark.parametrize("case_id", ["V01", "V02", "V03", "V04", "V05",
+                                     "V06", "V07", "V08", "V09", "V10"])
+def test_each_control_case(case_id):
+    """Каждый пример отдельным тестом - чтобы падение было точечным."""
+    results = {r.case_id: r for r in run_validation()}
+    r = results[case_id]
+    assert r.passed, f"{case_id}: получили {r.computed}, ждали {r.expected}"
 
 
-def test_v04_take_or_pay_not_double():
-    # тот же вход -> ровно 140, не 280
-    v = variable_payment(price=2, drawn=50, take_or_pay=0.70, reserved_capacity=100)
-    assert abs(v - 140) < 1e-9
+def test_mandatory_stress_integration():
+    """Интеграционная проверка полного MANDATORY_STRESS на реальных входах кейса.
 
-
-def test_v05_reservation_proportional():
-    # 100 * 0.4 * 0.5 = 20
-    r = reservation_payment(rate=0.4, reserved_capacity=100, year_fraction=0.5)
-    assert abs(r - 20) < 1e-9
-
-
-def test_v06_losses_once():
-    # 20 * 0.05 = 1 (на throughput, один раз)
-    assert abs(20 * 0.05 - 1) < 1e-9
-
-
-def test_v07_reserve_45_days():
-    # 365 * 45/365 = 45
-    assert abs(365 * 45 / 365 - 45) < 1e-9
-
-
-def test_v09_critical_nested_in_total():
-    # общий = 100, не 160 при критическом 60
-    case = load_case(ROOT / "data" / "case.yaml")
-    # в наших данных критический всегда <= общего (валидатор модели это гарантирует)
-    for y in case.demand.years_sorted:
-        assert case.demand.critical(y) <= case.demand.total(y)
-
-
-def test_v10_stress_share_not_times_reliability():
-    """V10: фактическая доля поставки ISRU НЕ умножается повторно на надёжность.
-    planned=20, share=0.5 -> 10 (а не 20*0.5*0.8=8)."""
-    # прямая проверка семантики через движок баланса на стрессе
+    Требование README организатора: помимо V01-V10 нужна интеграционная проверка
+    стресса на настоящих данных. Проверяем рекомендованный план.
+    """
     case = load_case(ROOT / "data" / "case.yaml")
     scns = load_scenarios(ROOT / "configs")
-    # ISRU (D) доступен с 2038, надёжность 0.78; в стрессе доля 0.78
-    dec = Decision(
-        scenario_id="stress", initial_stock=0,
-        investments={"isru_pilot": 2037},
-        plan={2038: [ChannelDecision(channel_id="D", reserved_capacity=100, ordered=100)]},
-    )
-    rows = compute_balance(case, dec, scns["stress"])
-    r38 = next(r for r in rows if r.year == 2038)
-    d_flow = next(f for f in r38.channels if f.channel_id == "D")
-    # мощность 120, заказ 100, доля стресса 0.78 -> min(100, 120*0.78)=93.6
-    # ключ: доля применяется к мощности ОДИН раз, без второго множителя надёжности
-    expected = min(100, 120 * 0.78)
-    assert abs(d_flow.delivered - expected) < 1e-6
+    dec = load_decision(ROOT / "results" / "plan_recommended.json")
+    res = evaluate_plan(case, dec, scns["stress"])
 
+    # в стрессе критический спрос должен держаться 100% (главное свойство плана)
+    for r in res.years:
+        assert r.service_critical_ratio >= 0.999, \
+            f"{r.year}: критический сервис {r.service_critical_ratio:.3f} < 100%"
 
-def test_v08_capacity_exceeded():
-    """V08: заказ выше мощности канала -> нарушение (у нас channel_capacity)."""
-    case = load_case(ROOT / "data" / "case.yaml")
-    scns = load_scenarios(ROOT / "configs")
-    # канал B мощность 110, закажем 130 -> должно быть нарушение мощности
-    dec = Decision(
-        scenario_id="standard", initial_stock=0,
-        plan={2035: [ChannelDecision(channel_id="B", reserved_capacity=110, ordered=130)]},
-    )
-    res = evaluate_plan(case, dec, scns["standard"])
-    cap_viol = [v for v in res.violations if v.kind == "channel_capacity"]
-    assert len(cap_viol) >= 1
+    # план не должен иметь ошибок-нарушений (только warnings допустимы в стрессе)
+    errors = [v for v in res.violations if v.severity == "error"]
+    assert not errors, f"ошибки в стрессе: {[v.message for v in errors]}"
+
+    # стресс с 2038 поднимает спрос x1.15 - проверяем что трансформация применена
+    d2038 = next(r for r in res.years if r.year == 2038)
+    assert abs(d2038.demand_total - 250 * 1.15) < 1e-6

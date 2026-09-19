@@ -80,9 +80,14 @@ cd frontend && npm run dev                        # терминал 2 -> localh
 2. Стандартный сценарий: `run --scenario standard --plan results/plan_standard.json`.
 3. Обязательный стресс-тест: `run --scenario stress --plan results/plan_standard.json`.
 4. Сравнение: `compare --plan results/plan_standard.json`.
-5. Тесты (контрольные и граничные примеры): `pytest`.
-6. Веб-интерфейс: пройти сценарий оператора (данные → план → дашборд →
+5. Контрольные примеры кейса V01-V10: `python -m fuelcontour validate` (10/10).
+6. Тесты (контрольные и граничные примеры): `pytest`.
+7. Веб-интерфейс: пройти сценарий оператора (данные → план → дашборд →
    сравнение → выгрузка).
+
+Папка `validation/` содержит контрольные векторы организатора
+(`expected_checks.json`, `control_cases.md`) и входы к ним (`case_inputs.json`).
+Команда `validate` воспроизводит ожидаемые результаты нашим движком.
 
 ## Структура репозитория
 
