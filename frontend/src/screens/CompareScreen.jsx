@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import * as api from '../api'
 
-// сравнение стандартного и стрессового сценариев на общей базе (с.10).
+// сравнение стандартного и стрессового сценариев на общей базе.
 
 function pct(x) { return (x * 100).toFixed(1) + '%' }
 
@@ -86,7 +86,7 @@ export default function CompareScreen({ decision }) {
           </tbody>
         </table>
         <div className="hint">
-          Дефицит в стрессе показывается численно, а не скрывается изменением бюджета (Правило 8).
+          Дефицит в стрессе показывается численно, а не скрывается изменением бюджета.
         </div>
       </div>
     </div>

@@ -1,7 +1,7 @@
 import React from 'react'
 
 // экран нарушений. цвет НЕ единственный индикатор - есть тег [ОШИБКА]/[ВНИМАНИЕ]
-// и текст (доступность, с.8).
+// и текст (доступность).
 
 export default function ViolationsScreen({ result }) {
   if (!result) return <div className="panel">Нет результата.</div>
@@ -79,7 +79,7 @@ export default function ViolationsScreen({ result }) {
             </tbody>
           </table>
           <div className="hint">
-            Надёжность каналов учтена здесь как риск, а не как множитель поставки (Правило 6).
+            Надёжность каналов учтена здесь как риск, а не как множитель поставки.
           </div>
         </div>
       )}

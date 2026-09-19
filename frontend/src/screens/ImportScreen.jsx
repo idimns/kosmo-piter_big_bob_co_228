@@ -146,8 +146,8 @@ export default function ImportScreen({ onApplied }) {
         <p style={{ color: 'var(--muted)', margin: '4px 0 12px', lineHeight: 1.5 }}>
           Загрузите файл со спросом, каналами, хранилищем или инвестициями. Структура
           не важна — импортёр сам распознаёт колонки по названиям (в любом порядке,
-          с любыми заголовками, лишние колонки игнорируются). Формат-ориентир —
-          файлы репозитория организатора (demand.csv, supply_sources.csv, …).
+          с любыми заголовками, лишние колонки игнорируются). Поддерживаются
+          форматы CSV и XLSX.
         </p>
         <input type="file" accept=".csv,.xlsx,.xls" onChange={onFile} />
         {busy && <span className="hint" style={{ marginLeft: 10 }}>обработка…</span>}

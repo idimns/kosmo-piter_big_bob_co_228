@@ -15,7 +15,7 @@ const SCREENS = [
   { id: 'dashboard', label: 'Дашборд' },
   { id: 'violations', label: 'Проверки' },
   { id: 'compare', label: 'Сравнение сценариев' },
-  { id: 'geo', label: 'Геополитика (+5)' },
+  { id: 'geo', label: 'Геополитика' },
 ]
 
 // начальный план - пустой, пользователь наполняет через экран решений
@@ -92,7 +92,7 @@ export default function App() {
   return (
     <div className="app">
       <div className="sidebar">
-        <h1>Топливный космоконтур 2035</h1>
+        <h1>Топливный космоконтур</h1>
         {SCREENS.map((s) => (
           <button
             key={s.id}

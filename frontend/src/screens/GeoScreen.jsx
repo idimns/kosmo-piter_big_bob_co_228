@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import * as api from '../api'
 
-// геополитический блок (+5 бонус). пользователь задаёт событие, каналы,
+// геополитический блок: пользователь задаёт событие, каналы,
 // направление и величину ценового шока. работает на копии - контрольные
 // сценарии не меняются.
 
@@ -39,7 +39,7 @@ export default function GeoScreen({ decision, scenarioId, caseData }) {
   return (
     <div>
       <div className="panel">
-        <h3>Геополитический сценарий <span className="hint">(бонусный модуль, работает на копии)</span></h3>
+        <h3>Геополитический сценарий <span className="hint">(работает на копии данных)</span></h3>
         <div style={{ marginBottom: 10 }}>
           <label>Описание события</label><br />
           <input className="wide" type="text" value={desc} onChange={(e) => setDesc(e.target.value)} />

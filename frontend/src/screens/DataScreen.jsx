@@ -1,13 +1,13 @@
 import React from 'react'
 
-// экран данных кейса. параметры статуса 'case' - только чтение (Правило 4).
+// экран данных кейса. параметры статуса 'case' - только чтение.
 export default function DataScreen({ caseData }) {
   const years = Object.keys(caseData.demand.years).sort()
 
   return (
     <div>
       <div className="panel">
-        <h3>Спрос по годам <span className="hint">(статус: case, только чтение)</span></h3>
+        <h3>Спрос по годам <span className="hint">(исходные условия, только просмотр)</span></h3>
         <table>
           <thead>
             <tr>

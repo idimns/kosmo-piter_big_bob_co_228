@@ -147,7 +147,7 @@ tr:hover td { background: rgba(74,158,255,0.05); }
 .kpi .label { color: var(--muted); font-size: 12px; }
 .kpi .value { font-size: 20px; font-weight: 600; margin-top: 4px; }
 
-/* нарушения - не только цвет, но и иконка/текст (доступность, с.8) */
+/* нарушения - не только цвет, но и иконка/текст (доступность) */
 .viol {
   padding: 8px 12px;
   margin: 6px 0;

@@ -1,7 +1,7 @@
 import React from 'react'
 
 // экран решений - тут пользователь строит план: заказы и резерв по каналам,
-// инвестиции, ZBO. это DECISION-слой, всё меняется через интерфейс (Правило 4).
+// инвестиции, ZBO. это DECISION-слой, всё меняется через интерфейс.
 
 export default function DecisionsScreen({ caseData, decision, setDecision }) {
   const years = Object.keys(caseData.demand.years).map(Number).sort()
