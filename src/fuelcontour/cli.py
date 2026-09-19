@@ -1,6 +1,6 @@
 """CLI цифрового контура.
 
-Запуск без UI (воспроизводимость для жюри, критерий №5):
+Запуск без UI (для воспроизводимых расчётов и автоматизации):
     python -m fuelcontour run --scenario standard --plan results/plan_standard.json
     python -m fuelcontour compare --plan results/plan_standard.json
     python -m fuelcontour show-case

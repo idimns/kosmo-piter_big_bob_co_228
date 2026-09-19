@@ -11,7 +11,7 @@
   POST /api/export                {decision, scenario_id, fmt} -> файл
   POST /api/geopolitical/apply    {decision, scenario_id, event} -> до/после
 
-Валидация ввода -> понятное сообщение (критерий №19). Ядро не знает про HTTP.
+Валидация ввода -> понятное сообщение. Ядро не знает про HTTP.
 """
 from __future__ import annotations
 
@@ -467,7 +467,7 @@ def create_app() -> FastAPI:
         state["case"] = load_case(DATA)
         return {"reset": True}
 
-    # раздача собранного фронта (один процесс для жюри).
+    # раздача собранного фронта (один процесс).
     # если фронт ещё не собран - пропускаем, API работает сам по себе.
     frontend_dist = ROOT / "frontend" / "dist"
     if frontend_dist.exists():

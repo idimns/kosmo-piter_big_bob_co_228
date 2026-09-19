@@ -98,7 +98,7 @@ uvicorn fuelcontour.api.app:app --port 8000
 
 ## 3. Командная строка
 
-Полезно для воспроизводимости (жюри может проверить без интерфейса).
+Полезно для воспроизводимых расчётов и автоматизации (без интерфейса).
 
 ```bash
 # показать данные кейса
@@ -111,7 +111,7 @@ python -m fuelcontour run --scenario stress   --plan results/plan_recommended.js
 # сравнить сценарии
 python -m fuelcontour compare --plan results/plan_recommended.json
 
-# контрольные примеры организатора V01-V10
+# контрольные примеры V01-V10
 python -m fuelcontour validate
 
 # найти оптимальный план (MILP)

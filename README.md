@@ -48,7 +48,7 @@ python -m fuelcontour compare --plan results/plan_standard.json
 
 ## Веб-интерфейс (рабочее место оператора)
 
-Вариант 1 — одной командой через Docker (рекомендуется для жюри):
+Вариант 1 — одной командой через Docker (рекомендуется):
 
 ```bash
 docker compose up
@@ -74,20 +74,20 @@ cd frontend && npm run dev                        # терминал 2 -> localh
 ограничений, сравнение сценариев, геополитический блок. Выгрузка CSV/XLSX —
 кнопками в шапке.
 
-## Порядок проверки (для жюри)
+## Быстрая проверка работоспособности
 
 1. Установка и запуск (см. выше) — или `docker compose up`.
 2. Стандартный сценарий: `run --scenario standard --plan results/plan_standard.json`.
-3. Обязательный стресс-тест: `run --scenario stress --plan results/plan_standard.json`.
+3. Стресс-сценарий: `run --scenario stress --plan results/plan_standard.json`.
 4. Сравнение: `compare --plan results/plan_standard.json`.
-5. Контрольные примеры кейса V01-V10: `python -m fuelcontour validate` (10/10).
+5. Контрольные примеры V01-V10: `python -m fuelcontour validate` (10/10).
 6. Тесты (контрольные и граничные примеры): `pytest`.
 7. Веб-интерфейс: пройти сценарий оператора (данные → план → дашборд →
    сравнение → выгрузка).
 
-Папка `validation/` содержит контрольные векторы организатора
+Папка `validation/` содержит контрольные векторы
 (`expected_checks.json`, `control_cases.md`) и входы к ним (`case_inputs.json`).
-Команда `validate` воспроизводит ожидаемые результаты нашим движком.
+Команда `validate` воспроизводит ожидаемые результаты расчётным ядром.
 
 ## Структура репозитория
 

@@ -1,4 +1,4 @@
-# запуск для жюри: docker compose up -> http://localhost:8000
+# запуск: docker compose up -> http://localhost:8000
 services:
   app:
     build: .
