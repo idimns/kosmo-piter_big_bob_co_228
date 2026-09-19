@@ -283,6 +283,60 @@ def create_app() -> FastAPI:
             "after": result_to_dict(geo.after),
         }
 
+    # --- оптимизация, чувствительность, монте-карло --------------------------
+
+    def _decision_to_dict(dec) -> dict:
+        return {
+            "scenario_id": dec.scenario_id,
+            "initial_stock": dec.initial_stock,
+            "use_zbo": dec.use_zbo,
+            "investments": dec.investments,
+            "plan": {str(y): [{"channel_id": c.channel_id,
+                               "reserved_capacity": c.reserved_capacity,
+                               "ordered": c.ordered} for c in items]
+                     for y, items in dec.plan.items()},
+        }
+
+    @app.post("/api/optimize")
+    def api_optimize(req: dict):
+        """MILP-оптимизация плана с проверкой движком."""
+        from ..engine.optimizer import optimize_and_verify
+        scenario_id = req.get("scenario_id", "standard")
+        scn = _get_scenario(scenario_id)
+        res = optimize_and_verify(cur_case(), scn, time_limit=req.get("time_limit", 20))
+        if not res["feasible"]:
+            raise HTTPException(status_code=422, detail=f"Оптимум не найден: {res['status']}")
+        return {
+            "status": res["status"],
+            "iterations": res["iterations"],
+            "lower_bound": res["lower_bound"],
+            "engine_total": res["engine_total"],
+            "engine_discounted": res["engine_discounted"],
+            "gap_pct": res["gap_pct"],
+            "decision": _decision_to_dict(res["decision"]),
+            "result": result_to_dict(res["result"]),
+        }
+
+    @app.post("/api/sensitivity")
+    def api_sensitivity(req: dict):
+        """Торнадо-анализ чувствительности."""
+        from ..engine.sensitivity import tornado
+        decision = _parse_decision(req["decision"])
+        _validate_plan(decision)
+        scn = _get_scenario(req.get("scenario_id", "standard"))
+        return tornado(cur_case(), decision, scn, delta=req.get("delta", 0.2))
+
+    @app.post("/api/montecarlo")
+    def api_montecarlo(req: dict):
+        """Монте-Карло оценка рисков (детерминирован по seed)."""
+        from ..engine.montecarlo import run_montecarlo
+        decision = _parse_decision(req["decision"])
+        _validate_plan(decision)
+        scn = _get_scenario(req.get("scenario_id", "stress"))
+        mc = run_montecarlo(cur_case(), decision, scn,
+                            trials=req.get("trials", 2000), seed=req.get("seed", 42))
+        return mc.as_dict()
+
     # --- импорт данных из CSV/XLSX ------------------------------------------
 
     @app.post("/api/import/preview")
